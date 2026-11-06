@@ -1,5 +1,14 @@
 # Verification log
 
+## 2026-11-06: CORS verified
+- Ran a verification from a Swagger UI scratch page running on localhost (http://localhost:8080) and used DevTools > Console:
+    ```
+    fetch("https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/car?format=json").then(r => r.json()).then(d => console.log(d.Count, d.Message))
+- Output with the count and message:
+  `195 'Response returned successfully'`
+- Result: Browser cross-origin GET succeeded without a CORS error.
+- Action: Need to re-run when published on GitHub Pages in S6.
+
 ## 2026-11-06: CORS
 - GET /vehicles/GetMakesForVehicleType/car?format=json with Origin: https://southpaw199.github.io
 - Response header: access-control-allow-origin: *
