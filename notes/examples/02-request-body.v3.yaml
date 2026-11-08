@@ -1,0 +1,71 @@
+openapi: "3.0.3"
+info:
+  title: OpenAPI 3.0 Request Body Configuration
+  description: |
+    This is an example of how to configure a request body in OpenAPI 3.0
+  version: "1.0.0"
+
+components:
+  schemas:
+    Album:
+      type: object
+      required:
+        - upc
+        - albumName
+      properties:
+        upc:
+          type: string
+          pattern: '^\d{12,13}$'
+          description: Universal Product Code or EAN barcode for the release
+        albumName:
+          type: string
+        artistName:
+          type: string
+        releaseYear:
+          type: integer
+    AlbumForm:                                  # the form's schema can sit in the components or inline under the media type
+      type: object
+      properties:
+        upc:
+          type: string
+          pattern: '^\d{12,13}$'
+          description: Universal Product Code or EAN barcode for the release
+        albumName:
+          type: string
+        artistName:
+          type: string
+        releaseYear:
+          type: integer
+        submitDate:
+          type: string
+          format: date-time
+      required:
+        - upc
+        - albumName
+paths:
+  /albums:
+    post:
+      summary: Add a new album
+      operationId: createAlbum
+      requestBody:
+        description: Submit information to add a new album
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Album"
+          application/xml:
+            schema:
+              $ref: "#/components/schemas/Album"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/AlbumForm"
+          text/plain:                            # different schema per media type, in one operation
+            schema:
+              type: string
+
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Invalid input

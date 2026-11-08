@@ -1,0 +1,26 @@
+openapi: "3.0.3"
+info:
+  title: OpenAPI 3.0 Server Configuration
+  description: |
+    This is an example of server configuration for OpenAPI 3.0
+  version: "1.0.0"
+
+servers:
+  - url: https://{subdomain}.example.com/{version} # Variables are new in OpenAPI 3.0
+    description: Production server with variable subdomain and versions
+    variables:
+      subdomain:
+        default: api
+        description: The subdomain for the environment
+        enum:
+          - api         # uses live data
+          - sandbox     # uses test data
+      version:
+        enum:
+          - v1.8
+          - v2.0
+          - v2.1
+        default: v2.0
+  - url: https://localhost:8088
+    description: Local development server
+paths: {}
