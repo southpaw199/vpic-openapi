@@ -1,0 +1,13 @@
+swagger: "2.0"
+info:
+  title: Swagger 2.0 Server Configuration
+  description: |
+    This is an example of server configuration for Swagger 2.0
+  version: "1.0.0"
+
+host: api.example.com
+basePath: /v2.0
+schemes:
+  - https
+
+paths: {}

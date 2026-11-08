@@ -1,0 +1,43 @@
+swagger: "2.0"
+info:
+  title: Swagger 2.0 Security and Authentication Configuration
+  description: |
+    Simple example of API security for Swagger 2.0
+  version: "1.0.0"
+
+host: api.example.com
+schemes:
+  - https
+basePath: /v2.0
+
+consumes:
+  - application/json
+produces:
+  - application/json
+security:
+  - oauth2Auth: [read]
+  - httpBasicAuth: []
+    apiKeyAuth: []
+
+paths:
+  /users:
+    get:
+      summary: List users
+      responses:
+        '200':
+          description: Success
+
+securityDefinitions:
+  oauth2Auth:
+    type: oauth2
+    flow: accessCode
+    authorizationUrl: https://example.com/oauth2/dialog
+    tokenUrl: https://example.com/oauth/token
+    scopes:
+      read: Read user profiles.
+  httpBasicAuth:
+    type: basic
+  apiKeyAuth:
+    type: apiKey
+    in: header
+    name: EXAMPLE-API-KEY

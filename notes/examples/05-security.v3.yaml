@@ -1,0 +1,62 @@
+openapi: "3.0.3"
+info:
+  title: OpenAPI 3.0 Security and Authentication Configuration
+  description: |
+    This is an **example** API to demonstrate security and authentication features of OpenAPI 3.0.
+  version: "1.0.0"
+
+servers:
+  - url: https://{subdomain}.example.com/{version}
+    description: Production server with variable subdomain and versions
+    variables:
+      subdomain:
+        default: api
+        description: The subdomain for the environment
+      version:
+        enum:
+          - v1.8
+          - v2.0
+        default: v2.0
+security:
+  - oauth2Auth: [read]
+  - httpBasicAuth: []
+    apiKeyAuth: []
+  - httpBearerAuth: []                             # new authentication method
+  - openIdConnect: []                              # new authentication method
+    cookieAuth: []
+paths:
+  /users:
+    get:
+      summary: List users
+      operationId: getUsers
+      responses:
+        '200':
+          description: Success
+components:
+  securitySchemes:
+    oauth2Auth:
+      type: oauth2
+      flows:
+        authorizationCode:                          # changed from accessCode
+          authorizationUrl: https://example.com/oauth2/dialog
+          tokenUrl: https://example.com/oauth/token
+          scopes:
+            read: Read user profiles.
+    httpBasicAuth:
+      type: http                                    # changed from type: basic to type: http and scheme: basic
+      scheme: basic
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: EXAMPLE-API-KEY
+    httpBearerAuth:                                 # new authentication method
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    openIdConnect:                                  # new authentication method
+      type: openIdConnect
+      openIdConnectUrl: https://example.com/openidconnect
+    cookieAuth:
+      type: apiKey
+      in: cookie                                    # new in value
+      name: EXAMPLE-SESSION-ID

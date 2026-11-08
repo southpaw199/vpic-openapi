@@ -1,0 +1,86 @@
+swagger: "2.0"
+info:
+  title: Swagger 2.0 Request Body Configuration
+  description: |
+    This is an example of request body configuration for Swagger 2.0
+  version: "1.0.0"
+
+schemes:
+  - https
+
+paths:
+  /albums:
+    post:
+      summary: Add a new album
+      operationId: createAlbum
+      description: Adds a new album, with name, artist, and release year
+      consumes:
+        - application/json
+        - application/xml
+      parameters:
+        - in: body
+          name: album
+          description: New album
+          required: true
+          schema:
+            $ref: '#/definitions/Album'
+      responses:
+        '201':
+          description: Album created
+        '400':
+          description: Invalid input
+  /albums/form:
+    post:
+      summary: Submit a form to add a new album
+      operationId: createAlbumFromForm
+      description: Allows a user to add a new album via a web form.
+      consumes:
+        - application/x-www-form-urlencoded
+        - multipart/form-data
+      parameters:                                  # each field is its own parameter, no schema
+        - name: upc
+          in: formData
+          type: string
+          pattern: '^\d{12,13}$'
+          description: Universal Product Code or EAN barcode for the release
+          required: true
+        - name: albumName
+          in: formData
+          type: string
+          description: The name of the album
+          required: true
+        - name: artistName
+          in: formData
+          type: string
+          description: The name of the artist or band
+        - name: releaseYear
+          in: formData
+          type: integer
+          description: The year the album was officially released
+        - name: submitDate
+          in: formData
+          type: string
+          format: date-time
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Invalid input
+definitions:
+  Album:
+    type: object
+    required:
+      - upc
+      - albumName
+    properties:
+      upc:
+        type: string
+        pattern: '^\d{12,13}$'
+        description: Universal Product Code or EAN barcode for the release
+      albumName:
+        type: string
+      artistName:
+        type: string
+      releaseYear:
+        type: integer
+
