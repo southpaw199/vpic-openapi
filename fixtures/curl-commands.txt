@@ -1,0 +1,51 @@
+
+curl -s "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/1HGCM82633A004352?format=json" \
+  -o fixtures/decodevinvalues-full-vin.json -w "%{http_code} %{content_type}\n"
+200 application/json
+
+curl -s "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/1HGCM?format=json" \
+  -o fixtures/decodevinvalues-partial-vin-short.json -w "%{http_code} %{content_type}\n"
+200 application/json
+
+curl -s "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/12345?format=json" \
+  -o fixtures/decodevinvalues-invalid-vin.json -w "%{http_code} %{content_type}\n"
+200 application/json
+
+curl -s 'https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/$$$$$?format=json' \
+  -o fixtures/decodevinvalues-invalid-vin-special-characters.json -w '%{http_code} %{content_type}\n'
+200 application/json
+
+curl -s 'https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/$$^$!$$?format=json' \
+  -o fixtures/decodevinvalues-invalid-vin-mixed-special-characters.json -w '%{http_code} %{content_type}\n'
+200 application/json
+
+curl -s "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/1HGCM82633A004352" \
+  -o fixtures/decodevinvalues-noformat-vin.xml -w "%{http_code} %{content_type}\n"
+200 application/xml
+
+curl -s "https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/car?format=json" \
+  -o fixtures/getmakesforvehicletype-car.json -w "%{http_code} %{content_type}\n"
+200 application/json
+
+curl -s "https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/cheese?format=json" \
+  -o fixtures/getmakesforvehicletype-invalid-type.json -w "%{http_code} %{content_type}\n"
+200 application/json
+
+curl -s "https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/make/honda/modelyear/2015?format=json" \
+  -o fixtures/getmodelsformakeyear-valid-make-year.json -w "%{http_code} %{content_type}\n"
+200 application/json
+
+curl -s "https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/honda,2015?format=json" \
+  -o fixtures/getmodelsformakeyear-malformed-request.json -w "%{http_code} %{content_type}\n"
+404 application/json; charset=utf-8
+
+curl -s "https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/make/honda/modelyear/20x3g?format=json" \
+  -o fixtures/getmodelsformakeyear-invalid-year.json -w "%{http_code} %{content_type}\n"
+200 application/json
+
+curl -s -X POST "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVINValuesBatch/" \
+  --data "format=json&data=1HGCM82633A004352,2003;5UXWX7C5*BA,2011" \
+  -o fixtures/decodevinvaluesbatch-two-vins.json -w "%{http_code} %{content_type}\n"
+200 application/json
+
+

@@ -1,0 +1,10 @@
+{
+  "Count": 0,
+  "Message": "Execution Error",
+  "SearchCriteria": null,
+  "Results": [
+    {
+      "Message": "Error encountered retrieving data: Neither Model Year nor Vehicle Type were supplied"
+    }
+  ]
+}
