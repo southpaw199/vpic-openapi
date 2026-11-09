@@ -47,6 +47,30 @@ components:
             type: object
             additionalProperties:
               type: string
+    MakesResponse:
+      type: object
+      properties:
+        Count:
+          type: integer
+          format: int32
+        Message:
+          type: string
+        SearchCriteria:
+          type: string
+          nullable: true
+        Results:
+          type: array
+          items:
+            type: object
+            properties:
+              MakeId:
+                type: integer
+              MakeName:
+                type: string
+              VehicleTypeId:
+                type: integer
+              VehicleTypeName:
+                type: string
   responses:
     NotFoundError:
       description: Resource not found
@@ -87,5 +111,32 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/VinDecodeResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /GetMakesForVehicleType/{vehicleType}:
+    get:
+      tags:
+        - makes and models
+      summary: Get makes by vehicle type (e.g., car, truck)
+      operationId: getMakesByVehicleType
+      parameters:
+        - name: vehicleType
+          in: path
+          required: true
+          description: Vehicle type
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Format'
+      responses:
+        '200':
+          description: Response successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MakesResponse'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/MakesResponse'
         '404':
           $ref: '#/components/responses/NotFoundError'
