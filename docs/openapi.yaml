@@ -1,0 +1,91 @@
+openapi: "3.0.3"
+info:
+  title: vPIC Vehicle API (Unofficial)
+  version: 0.1.0
+  description: This is an unofficial OpenAPI description. It is not affiliated with or endorsed by [NHTSA](https://vpic.nhtsa.dot.gov/api/).
+servers:
+  - url: https://vpic.nhtsa.dot.gov/api/vehicles
+security: []
+tags:
+  - name: VIN decoding
+    description: Get vehicle information based on vehicle identification numbers (VINs)
+  - name: makes and models
+    description: Get vehicle makes and models
+components:
+  parameters:
+    Format:
+      name: format
+      in: query
+      required: false
+      description: The desired response format (e.g., json, xml)
+      schema:
+        type: string
+        enum: [json, xml]
+        default: xml
+  schemas:
+    NotFoundError:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+    VinDecodeResponse:
+      type: object
+      properties:
+        Count:
+          type: integer
+          format: int32
+        Message:
+          type: string
+        SearchCriteria:
+          type: string
+          nullable: true
+        Results:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: string
+  responses:
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NotFoundError'
+
+
+paths:
+  /DecodeVinValues/{vin}:
+    get:
+      tags:
+        - VIN decoding
+      summary: Get vehicle information based on VIN values
+      operationId: decodeVin
+      parameters:
+        - name: vin
+          in: path
+          required: true
+          description: Vehicle identification number (VIN)
+          schema:
+            type: string
+        - name: modelyear
+          in: query
+          required: false
+          description: The year a vehicle was manufactured
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/Format'
+      responses:
+        '200':
+          description: Response successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VinDecodeResponse'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/VinDecodeResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
