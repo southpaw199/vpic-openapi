@@ -48,4 +48,6 @@ curl -s -X POST "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVINValuesBatch/" 
   -o fixtures/decodevinvaluesbatch-two-vins.json -w "%{http_code} %{content_type}\n"
 200 application/json
 
-
+curl -s 'https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/passenger?format=json' \
+  -o fixtures/getmakesforvehicletype-multiple-types.json
+200 application/json
