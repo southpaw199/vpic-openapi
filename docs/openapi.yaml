@@ -78,7 +78,13 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/NotFoundError'
-
+          examples:
+            missingVin:
+              summary: Missing VIN from the request
+              value: {"message":"No HTTP resource was found that matches the request URI 'https://backend-vpic-api.nhtsa.dot.gov/api/vehicles/DecodeVinValues/?format=json'."}
+            invalidPath:
+              summary: Malformed path (from a GetModelsForMakeYear test)
+              value: {"message":"No HTTP resource was found that matches the request URI 'https://backend-vpic-api.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/honda,2015?format=json'."}
 
 paths:
   /DecodeVinValues/{vin}:
@@ -108,11 +114,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VinDecodeResponse'
+              examples:
+                validVin:
+                  summary: Decoding of a valid VIN
+                  value: {"Count":1,"Message":"Results returned successfully. NOTE: Any missing decoded values should be interpreted as NHTSA does not have data on the specific variable. Missing value should NOT be interpreted as an indication that a feature or technology is unavailable for a vehicle.","SearchCriteria":"VIN(s): 1HGCM82633A004352","Results":[{"VIN":"1HGCM82633A004352","Make":"HONDA","Model":"Accord","ModelYear":"2003","BodyClass":"Coupe","ErrorCode":"0","ErrorText":"0 - VIN decoded clean. Check Digit (9th position) is correct","AdditionalErrorText":""}]}
+                partialVin:
+                  summary: Decoding of a part of a valid VIN
+                  value: {"Count":1,"Message":"Results returned successfully. NOTE: Any missing decoded values should be interpreted as NHTSA does not have data on the specific variable. Missing value should NOT be interpreted as an indication that a feature or technology is unavailable for a vehicle.","SearchCriteria":"VIN(s): 1HGCM","Results":[{"VIN":"1HGCM","Make":"HONDA","Model":"","ModelYear":"","BodyClass":"","ErrorCode":"6,8,11","ErrorText":"6 - Incomplete VIN; 8 - No detailed data available currently; 11 - Incorrect Model Year - Position 10 does not match valid model year codes (I, O, Q, U, Z, 0). Decoded data may not be accurate.","AdditionalErrorText":""}]}
+                invalidVin:
+                  summary: Decoding of an invalid VIN
+                  value: {"Count":1,"Message":"Results returned successfully. NOTE: Any missing decoded values should be interpreted as NHTSA does not have data on the specific variable. Missing value should NOT be interpreted as an indication that a feature or technology is unavailable for a vehicle.","SearchCriteria":"VIN(s): 12345","Results":[{"VIN":"12345","Make":"SHERMAN + REILLY","Model":"","ModelYear":"","BodyClass":"","ErrorCode":"6,8,11","ErrorText":"6 - Incomplete VIN; 8 - No detailed data available currently; 11 - Incorrect Model Year - Position 10 does not match valid model year codes (I, O, Q, U, Z, 0). Decoded data may not be accurate.","AdditionalErrorText":""}]}
+                invalidVinCharacters:
+                  summary: Decoding of a VIN with invalid, special characters
+                  value: {"Count":1,"Message":"Results returned successfully. NOTE: Any missing decoded values should be interpreted as NHTSA does not have data on the specific variable. Missing value should NOT be interpreted as an indication that a feature or technology is unavailable for a vehicle.","SearchCriteria":"VIN(s): $$$$$","Results":[{"VIN":"$$$$$","Make":"","Model":"","ModelYear":"","BodyClass":"","ErrorCode":"6,7,11,400","ErrorText":"6 - Incomplete VIN; 7 - Manufacturer is not registered with NHTSA for sale or importation in the U.S. for use on U.S roads; Please contact the manufacturer directly for more information; 11 - Incorrect Model Year - Position 10 does not match valid model year codes (I, O, Q, U, Z, 0). Decoded data may not be accurate.; 400 - Invalid Characters Present","AdditionalErrorText":"Invalid character(s): 1:$, 2:$, 3:$, 4:$, 5:$."}]}
             application/xml:
               schema:
                 $ref: '#/components/schemas/VinDecodeResponse'
         '404':
           $ref: '#/components/responses/NotFoundError'
+
 
   /GetMakesForVehicleType/{vehicleType}:
     get:
@@ -135,12 +155,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MakesResponse'
+              examples:
+                validVehicleType:
+                  summary: Get makes for a valid vehicle type car
+                  value: {"Count":195,"Message":"Response returned successfully","SearchCriteria":"Vehicle Type: car","Results":[{"MakeId":440,"MakeName":"ASTON MARTIN","VehicleTypeId":2,"VehicleTypeName":"Passenger Car"},{"MakeId":441,"MakeName":"TESLA","VehicleTypeId":2,"VehicleTypeName":"Passenger Car"},{"MakeId":442,"MakeName":"JAGUAR","VehicleTypeId":2,"VehicleTypeName":"Passenger Car"}]}
+                invalidVehicleType:
+                  summary: Get makes for an invalid vehicle type
+                  value: {"Count":0,"Message":"Response returned successfully","SearchCriteria":"Vehicle Type: cheese","Results":[]}
             application/xml:
               schema:
                 $ref: '#/components/schemas/MakesResponse'
         '404':
           $ref: '#/components/responses/NotFoundError'
-  
+
   /DecodeVINValuesBatch:
     post:
       tags:
@@ -163,6 +190,12 @@ paths:
                 data:
                   type: string
                   description: VIN,modelyear in pairs; separated by semicolons (e.g., 1HGCM82633A004352,2003;5UXWX7C5*BA,2011)
+            examples:
+              twoVins:
+                summary: Two VINs with model years
+                value:
+                  format: json
+                  data: 1HGCM82633A004352,2003;5UXWX7C5*BA,2011
       responses:
         '200':
           description: Response successful
@@ -170,6 +203,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VinDecodeResponse'
+              examples:
+                twoVins:
+                  summary: Get vehicle information for two VINs from one request
+                  value: {"Count":2,"Message":"Results returned successfully. NOTE: Any missing decoded values should be interpreted as NHTSA does not have data on the specific variable. Missing value should NOT be interpreted as an indication that a feature or technology is unavailable for a vehicle.","SearchCriteria":"","Results":[{"VIN":"1HGCM82633A004352","Make":"HONDA","Model":"Accord","ModelYear":"2003","BodyClass":"Coupe","ErrorCode":"0","ErrorText":"0 - VIN decoded clean. Check Digit (9th position) is correct","AdditionalErrorText":""},{"VIN":"5UXWX7C5*BA","Make":"BMW","Model":"X3","ModelYear":"2011","BodyClass":"Sport Utility Vehicle [SUV]/Multipurpose Vehicle [MPV]","ErrorCode":"6","ErrorText":"6 - Incomplete VIN","AdditionalErrorText":""}]}
             application/xml:
               schema:
                 $ref: '#/components/schemas/VinDecodeResponse'
