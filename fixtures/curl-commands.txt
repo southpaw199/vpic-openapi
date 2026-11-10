@@ -51,3 +51,15 @@ curl -s -X POST "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVINValuesBatch/" 
 curl -s 'https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/passenger?format=json' \
   -o fixtures/getmakesforvehicletype-multiple-types.json
 200 application/json
+
+curl -s 'https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/truck?format=json' \
+  -o fixtures/getmakesforvehicletype-truck.json  -w "%{http_code} %{content_type}\n"
+200 application/json
+
+curl -s 'https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/moto?format=json'\
+   -o fixtures/getmakesforvehicletype-moto.json  -w "%{http_code} %{content_type}\n"
+200 application/json
+
+curl -s "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/123?format=json" \
+  -o fixtures/decodevinvalues-partial-vin-123.json -w "%{http_code} %{content_type}\n"
+200 application/json
