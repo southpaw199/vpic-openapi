@@ -140,3 +140,38 @@ paths:
                 $ref: '#/components/schemas/MakesResponse'
         '404':
           $ref: '#/components/responses/NotFoundError'
+  
+  /DecodeVINValuesBatch:
+    post:
+      tags:
+        - VIN decoding
+      summary: Get vehicle information based on batches of VIN values
+      operationId: decodeVinBatch
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - data
+              properties:
+                format:
+                  type: string
+                  enum: [json, xml]
+                  default: xml
+                data:
+                  type: string
+                  description: VIN,modelyear in pairs; separated by semicolons (e.g., 1HGCM82633A004352,2003;5UXWX7C5*BA,2011)
+      responses:
+        '200':
+          description: Response successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VinDecodeResponse'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/VinDecodeResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
