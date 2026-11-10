@@ -2,7 +2,48 @@ openapi: "3.0.3"
 info:
   title: vPIC Vehicle API (Unofficial)
   version: 0.1.0
-  description: This is an unofficial OpenAPI description. It is not affiliated with or endorsed by [NHTSA](https://vpic.nhtsa.dot.gov/api/).
+  description: |
+   This service decodes and retrieves automotive and manufacturer information from the NHTSA Product Information Catalog Vehicle Listing (vPIC).
+
+   **Disclaimer**: This is an unofficial OpenAPI description. It is not affiliated with or endorsed by [NHTSA](https://vpic.nhtsa.dot.gov/api/).
+
+   ## Base URL
+
+   https://vpic.nhtsa.dot.gov/api/vehicles
+
+   ## Key features
+
+   - **VIN decoding**: Decodes one or more VINs and returns corresponding vehicle and manufacturer information.
+   - **Makes and models**: Lists the makes for a vehicle type.
+
+   ## Authentication
+
+   No authentication or API key is required.
+
+   ## Response format
+
+   XML is the default format. Add `format=json` to get JSON.
+
+   ## First request
+
+   ```bash
+   curl -s 'https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/1HGCM82633A004352?format=json'
+   ```
+
+   ## Error handling
+
+   - Bad input, such as an invalid VIN or unknown vehicle type, returns `HTTP 200`. Check `ErrorCode`, `ErrorText` in each result. For makes, `Count: 0` and an empty `Results` mean nothing matched.
+   - Missing or wrong path returns a `404` with a `{"message": ...}` body.
+
+   ## Scope
+
+   This specification covers only three of vPIC's operations:
+
+   - `DecodeVinValues`
+   - `DecodeVINValuesBatch`
+   - `GetMakesForVehicleType`
+
+   For a full list of available operations, see [NHTSA Vehicle API](https://vpic.nhtsa.dot.gov/api/).
   license:
     name: MIT
     url: https://github.com/southpaw199/vpic-openapi/blob/main/LICENSE
@@ -12,7 +53,7 @@ security: []
 tags:
   - name: VIN decoding
     description: Get vehicle information based on vehicle identification numbers (VINs)
-  - name: makes and models
+  - name: Makes and models
     description: Get vehicle makes and models
 components:
   parameters:
@@ -20,7 +61,7 @@ components:
       name: format
       in: query
       required: false
-      description: The desired response format (e.g., json, xml)
+      description: Response format. Defaults to `xml`.
       schema:
         type: string
         enum: [json, xml]
@@ -76,7 +117,7 @@ components:
                 type: string
   responses:
     NotFoundError:
-      description: Resource not found
+      description: Resource not found. The `message` exposes the backend hostname.
       content:
         application/json:
           schema:
@@ -94,25 +135,27 @@ paths:
     get:
       tags:
         - VIN decoding
-      summary: Get vehicle information based on VIN values
+      summary: Decode a VIN
+      description: |
+       Use to get vehicle information based on a full or partial VIN value. For a partial VIN, use `*` to indicate an unavailable character. The ninth digit is optional. The first three characters are decoded as the manufacturer code (WMI), so an incomplete VIN can still return a `Make`. For example, `12345` decodes to Make "SHERMAN + REILLY" with ErrorCode `6,8,11`.
       operationId: decodeVin
       parameters:
         - name: vin
           in: path
           required: true
-          description: Vehicle identification number (VIN)
+          description: Vehicle identification number (VIN) full or partial; use `*` for unknown characters.
           schema:
             type: string
         - name: modelyear
           in: query
           required: false
-          description: The year a vehicle was manufactured
+          description: The vehicle's model year
           schema:
             type: integer
         - $ref: '#/components/parameters/Format'
       responses:
         '200':
-          description: Response successful
+          description: Indicates results returned successfully, but may contain errors. Check `Count`, `ErrorCode` and `ErrorText` in the body.
           content:
             application/json:
               schema:
@@ -136,46 +179,13 @@ paths:
         '404':
           $ref: '#/components/responses/NotFoundError'
 
-
-  /GetMakesForVehicleType/{vehicleType}:
-    get:
-      tags:
-        - makes and models
-      summary: Get makes by vehicle type (e.g., car, truck)
-      operationId: getMakesByVehicleType
-      parameters:
-        - name: vehicleType
-          in: path
-          required: true
-          description: Vehicle type
-          schema:
-            type: string
-        - $ref: '#/components/parameters/Format'
-      responses:
-        '200':
-          description: Response successful
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MakesResponse'
-              examples:
-                validVehicleType:
-                  summary: Get makes for a valid vehicle type car
-                  value: {"Count":195,"Message":"Response returned successfully","SearchCriteria":"Vehicle Type: car","Results":[{"MakeId":440,"MakeName":"ASTON MARTIN","VehicleTypeId":2,"VehicleTypeName":"Passenger Car"},{"MakeId":441,"MakeName":"TESLA","VehicleTypeId":2,"VehicleTypeName":"Passenger Car"},{"MakeId":442,"MakeName":"JAGUAR","VehicleTypeId":2,"VehicleTypeName":"Passenger Car"}]}
-                invalidVehicleType:
-                  summary: Get makes for an invalid vehicle type
-                  value: {"Count":0,"Message":"Response returned successfully","SearchCriteria":"Vehicle Type: cheese","Results":[]}
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/MakesResponse'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
-
   /DecodeVINValuesBatch:
     post:
       tags:
         - VIN decoding
-      summary: Get vehicle information based on batches of VIN values
+      summary: Decode a batch of VINs
+      description: |
+       Use to get vehicle information for a batch of up to 50 full or partial VIN values and an optional model year. For a partial VIN, use `*` to indicate an unavailable character. The ninth digit is optional.
       operationId: decodeVinBatch
       requestBody:
         required: true
@@ -192,7 +202,7 @@ paths:
                   default: xml
                 data:
                   type: string
-                  description: VIN,modelyear in pairs; separated by semicolons (e.g., 1HGCM82633A004352,2003;5UXWX7C5*BA,2011)
+                  description: Semicolon-separated entries of `VIN` or `VIN,modelyear`. Up to 50 VINs.
             examples:
               twoVins:
                 summary: Two VINs with model years
@@ -201,7 +211,7 @@ paths:
                   data: 1HGCM82633A004352,2003;5UXWX7C5*BA,2011
       responses:
         '200':
-          description: Response successful
+          description: Indicates results returned successfully, but may contain errors. Check `Count` and the `ErrorCode` and `ErrorText` for each VIN in the body.
           content:
             application/json:
               schema:
@@ -213,5 +223,42 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/VinDecodeResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /GetMakesForVehicleType/{vehicleType}:
+    get:
+      tags:
+        - Makes and models
+      summary: List makes matching a vehicle type
+      description: |
+       List makes whose vehicle type name contain the value. For example, `moto` matches `Motorcycle`, `car` matches `Passenger Car`. A vehicle type such as `passenger` matches both `Passenger Car` and `Multipurpose Passenger Vehicle (MPV)` and returns the makes for each type. A make that matches several types appears once per type. Filter on `VehicleTypeId` or `VehicleTypeName` to isolate makes.
+      operationId: getMakesByVehicleType
+      parameters:
+        - name: vehicleType
+          in: path
+          required: true
+          description: All or part of a vehicle type name, such as `car`, `truck`, or `passenger`.
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Format'
+      responses:
+        '200':
+          description: |
+            Indicates results returned successfully, but `Count: 0` and `Results` are empty if there is no match.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MakesResponse'
+              examples:
+                validVehicleType:
+                  summary: Makes for `car` (3 of 195 shown).
+                  value: {"Count":195,"Message":"Response returned successfully","SearchCriteria":"Vehicle Type: car","Results":[{"MakeId":440,"MakeName":"ASTON MARTIN","VehicleTypeId":2,"VehicleTypeName":"Passenger Car"},{"MakeId":441,"MakeName":"TESLA","VehicleTypeId":2,"VehicleTypeName":"Passenger Car"},{"MakeId":442,"MakeName":"JAGUAR","VehicleTypeId":2,"VehicleTypeName":"Passenger Car"}]}
+                invalidVehicleType:
+                  summary: Get makes for an invalid vehicle type
+                  value: {"Count":0,"Message":"Response returned successfully","SearchCriteria":"Vehicle Type: cheese","Results":[]}
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/MakesResponse'
         '404':
           $ref: '#/components/responses/NotFoundError'
