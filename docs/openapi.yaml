@@ -3,6 +3,9 @@ info:
   title: vPIC Vehicle API (Unofficial)
   version: 0.1.0
   description: This is an unofficial OpenAPI description. It is not affiliated with or endorsed by [NHTSA](https://vpic.nhtsa.dot.gov/api/).
+  license:
+      name: MIT
+      url: https://github.com/southpaw199/vpic-openapi/blob/main/LICENSE
 servers:
   - url: https://vpic.nhtsa.dot.gov/api/vehicles
 security: []
