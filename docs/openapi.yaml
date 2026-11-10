@@ -232,7 +232,7 @@ paths:
         - Makes and models
       summary: List makes matching a vehicle type
       description: |
-       List makes whose vehicle type name contain the value. For example, `moto` matches `Motorcycle`, `car` matches `Passenger Car`. A vehicle type such as `passenger` matches both `Passenger Car` and `Multipurpose Passenger Vehicle (MPV)` and returns the makes for each type. A make that matches several types appears once per type. Filter on `VehicleTypeId` or `VehicleTypeName` to isolate makes.
+       List makes whose vehicle type name contains the value. For example, `moto` matches `Motorcycle`, `car` matches `Passenger Car`. A vehicle type such as `passenger` matches both `Passenger Car` and `Multipurpose Passenger Vehicle (MPV)` and returns the makes for each type. A make that matches several types appears once per type. Filter on `VehicleTypeId` or `VehicleTypeName` to isolate makes.
       operationId: getMakesByVehicleType
       parameters:
         - name: vehicleType
