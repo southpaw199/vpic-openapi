@@ -18,11 +18,46 @@
   - Wrong paths return a real 404 with a `{"message": ...}` body that has a different shape.
 - JSON fixtures are pretty-printed with jq . (whitespace only).
 
+## 2026-11-10: GetMakesForVehicleType: partial match across types
+
+- GET /GetMakesForVehicleType/passenger?format=json
+- Fixture: fixtures/getmakesforvehicletype-multiple-types.json
+- Response: `200 application/json`
+- Count: `306`
+- SearchCriteria: `"Vehicle Type: passenger"`
+- Results:
+  - 195 Passenger Car (`VehicleTypeId` 2)
+  - 111 Multipurpose Passenger Vehicle (MPV) (`VehicleTypeId` 7)
+- 59 makes appear twice, once per type. For example, ASTON MARTIN (`MakeId 440`) appears with `VehicleTypeId` 2 and again with 7.
+- The 195 matches the `car` count, so the two requests agree.
+
+## 2026-11-10: GetMakesForVehicleType: truck
+
+- GET /GetMakesForVehicleType/truck?format=json
+- Fixture: fixtures/getmakesforvehicletype-truck.json
+- Count: `208`, all `VehicleTypeName` "Truck" (`VehicleTypeId` 3)
+
+## 2026-11-10: GetMakesForVehicleType: moto
+
+- GET /GetMakesForVehicleType/moto?format=json
+- Fixture: fixtures/getmakesforvehicletype-moto.json
+- Count: `1701`, all `"Motorcycle"` (`VehicleTypeId` 1)
+- Shows that a fragment of a word matches.
+
+## 2026-11-10: DecodeVinValues: three characters (manufacturer code)
+
+- GET /DecodeVinValues/123?format=json
+- Fixture: fixtures/decodevinvalues-partial-vin-123.json
+- Response: 200 application/json
+- Make: `"SHERMAN + REILLY"`, Manufacturer: `"SHERMAN + REILLY, INC."`, ManufacturerId: `"19306"`
+- ErrorCode: `"6,8,11"`, the same as `12345`
+- What it shows: the first three characters alone produce the Make, so they're being read as the manufacturer code (WMI). That explains the `12345` result in your Invalid VIN entry.
+
 ## 2026-11-08: DecodeVinValues - Valid VIN
 
 - GET /DecodeVinValues/1HGCM82633A004352?format=json
 - Fixture: fixtures/decodevinvalues-full-vin.json
-- Response: 200 application/json
+- Response: `200 application/json`
 - Count: `1`
 - SearchCriteria: `"VIN(s): 1HGCM82633A004352"`
 
