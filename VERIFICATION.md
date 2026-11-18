@@ -18,40 +18,35 @@
   - Wrong paths return a real 404 with a `{"message": ...}` body that has a different shape.
 - JSON fixtures are pretty-printed with jq . (whitespace only).
 
-## 2026-11-10: GetMakesForVehicleType: partial match across types
+## 2026-11-06: CORS verified
 
-- GET /GetMakesForVehicleType/passenger?format=json
-- Fixture: fixtures/getmakesforvehicletype-multiple-types.json
-- Response: `200 application/json`
-- Count: `306`
-- SearchCriteria: `"Vehicle Type: passenger"`
-- Results:
-  - 195 Passenger Car (`VehicleTypeId` 2)
-  - 111 Multipurpose Passenger Vehicle (MPV) (`VehicleTypeId` 7)
-- 59 makes appear twice, once per type. For example, ASTON MARTIN (`MakeId 440`) appears with `VehicleTypeId` 2 and again with 7.
-- The 195 matches the `car` count, so the two requests agree.
+- Ran a verification from a Swagger UI scratch page running on localhost (`http://localhost:8080`) and used DevTools > Console:
 
-## 2026-11-10: GetMakesForVehicleType: truck
+  ```js
+  fetch("https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/car?format=json").then(r => r.json()).then(d => console.log(d.Count, d.Message))
+  ```
 
-- GET /GetMakesForVehicleType/truck?format=json
-- Fixture: fixtures/getmakesforvehicletype-truck.json
-- Count: `208`, all `VehicleTypeName` "Truck" (`VehicleTypeId` 3)
+- Output with the count and message: `195 'Response returned successfully'`
+- Result: Browser cross-origin GET succeeded without a CORS error.
+- Action: Need to re-run when published on GitHub Pages in S6.
 
-## 2026-11-10: GetMakesForVehicleType: moto
+## 2026-11-06: CORS
 
-- GET /GetMakesForVehicleType/moto?format=json
-- Fixture: fixtures/getmakesforvehicletype-moto.json
-- Count: `1701`, all `"Motorcycle"` (`VehicleTypeId` 1)
-- Shows that a fragment of a word matches.
+- GET /vehicles/GetMakesForVehicleType/car?format=json with Origin: `https://southpaw199.github.io`
+- Response header: access-control-allow-origin: *
+- Result: browser calls allowed; Swagger UI Try it out should work on GitHub Pages. Confirm in browser during S5.
 
-## 2026-11-10: DecodeVinValues: three characters (manufacturer code)
+## 2026-11-06: DecodeVinValues, partial VIN
 
-- GET /DecodeVinValues/123?format=json
-- Fixture: fixtures/decodevinvalues-partial-vin-123.json
-- Response: 200 application/json
-- Make: `"SHERMAN + REILLY"`, Manufacturer: `"SHERMAN + REILLY, INC."`, ManufacturerId: `"19306"`
-- ErrorCode: `"6,8,11"`, the same as `12345`
-- What it shows: the first three characters alone produce the Make, so they're being read as the manufacturer code (WMI). That explains the `12345` result in your Invalid VIN entry.
+- GET /vehicles/DecodeVinValues/5UXWX7C5*BA?format=json&modelyear=2011
+- Fixture: fixtures/decodevinvalues-partial-vin.json
+- Result:
+  - Make: `BMW`
+  - Model `X3`
+  - ModelYear: `"2011"` (string), 
+  - ErrorCode `"6"`
+  - ErrorText: `"6 - Incomplete VIN"`
+- Note: nonzero ErrorCode returned alongside a usable decode; numeric values come back as strings.
 
 ## 2026-11-08: DecodeVinValues - Valid VIN
 
@@ -68,10 +63,11 @@
 - Response: `200 application/json`
 - Count: `1`
 - SearchCriteria: `"VIN(s): 1HGCM"`
-- Returns all fields, populating only those that match the search criteria.
-- AdditionalErrorText: `""`
-- ErrorCode: `"6,8,11"`
-- ErrorText: `"6 - Incomplete VIN; 8 - No detailed data available currently; 11 - Incorrect Model Year - Position 10 does not match valid model year codes (I, O, Q, U, Z, 0). Decoded data may not be accurate."`
+- Results:
+  - Returns all fields, populating only those that match the search criteria.
+  - AdditionalErrorText: `""`
+  - ErrorCode: `"6,8,11"`
+  - ErrorText: `"6 - Incomplete VIN; 8 - No detailed data available currently; 11 - Incorrect Model Year - Position 10 does not match valid model year codes (I, O, Q, U, Z, 0). Decoded data may not be accurate."`
 
 ## 2026-11-08: DecodeVinValues: Invalid VIN
 
@@ -83,9 +79,10 @@ I tried just numeric characters:
 - Count: `1`
 - Message: No indication of error.
 - SearchCriteria: `"VIN(s): 12345"`
-- AdditionalErrorText: `""`
-- ErrorCode: `"6,8,11"`
-- ErrorText: `"6 - Incomplete VIN; 8 - No detailed data available currently; 11 - Incorrect Model Year - Position 10 does not match valid model year codes (I, O, Q, U, Z, 0). Decoded data may not be accurate."`
+- Result:
+  - AdditionalErrorText: `""`
+  - ErrorCode: `"6,8,11"`
+  - ErrorText: `"6 - Incomplete VIN; 8 - No detailed data available currently; 11 - Incorrect Model Year - Position 10 does not match valid model year codes (I, O, Q, U, Z, 0). Decoded data may not be accurate."`
 
 I tried non-alphanumeric characters:
 
@@ -95,9 +92,10 @@ I tried non-alphanumeric characters:
 - Count: `1`
 - Message: No indication of error.
 - SearchCriteria: `"VIN(s): $$$$$"`
-- AdditionalErrorText: `"Invalid character(s): 1:$, 2:$, 3:$, 4:$, 5:$."`
-- ErrorCode: `"6,7,11,400"`
-- ErrorText: `"6 - Incomplete VIN; 7 - Manufacturer is not registered with NHTSA for sale or importation in the U.S. for use on U.S roads; Please contact the manufacturer directly for more information; 11 - Incorrect Model Year - Position 10 does not match valid model year codes (I, O, Q, U, Z, 0). Decoded data may not be accurate.; 400 - Invalid Characters Present"`
+- Result:
+  - AdditionalErrorText: `"Invalid character(s): 1:$, 2:$, 3:$, 4:$, 5:$."`
+  - ErrorCode: `"6,7,11,400"`
+  - ErrorText: `"6 - Incomplete VIN; 7 - Manufacturer is not registered with NHTSA for sale or importation in the U.S. for use on U.S roads; Please contact the manufacturer directly for more information; 11 - Incorrect Model Year - Position 10 does not match valid model year codes (I, O, Q, U, Z, 0). Decoded data may not be accurate.; 400 - Invalid Characters Present"`
 - Note: First attempt of this operation in a bash shell using `curl` with double quotes resulted in the shell expanding `$$` to its process ID, so vPIC received a number instead of the VIN. Re-ran it successfully with single quotes.
 
 I tried a mix of non-alphanumeric characters:
@@ -108,9 +106,10 @@ I tried a mix of non-alphanumeric characters:
 - Count: `1`
 - Message: No indication of error
 - SearchCriteria: `"VIN(s): $$^$!$$"`
-- AdditionalErrorText: `"Invalid character(s): 1:$, 2:$, 3:^, 4:$, 5:!, 6:$, 7:$."`
-- ErrorCode: `"6,7,11,400"`
-- ErrorText: `"6 - Incomplete VIN; 7 - Manufacturer is not registered with NHTSA for sale or importation in the U.S. for use on U.S roads; Please contact the manufacturer directly for more information; 11 - Incorrect Model Year - Position 10 does not match valid model year codes (I, O, Q, U, Z, 0). Decoded data may not be accurate.; 400 - Invalid Characters Present"`
+- Result:
+  - AdditionalErrorText: `"Invalid character(s): 1:$, 2:$, 3:^, 4:$, 5:!, 6:$, 7:$."`
+  - ErrorCode: `"6,7,11,400"`
+  - ErrorText: `"6 - Incomplete VIN; 7 - Manufacturer is not registered with NHTSA for sale or importation in the U.S. for use on U.S roads; Please contact the manufacturer directly for more information; 11 - Incorrect Model Year - Position 10 does not match valid model year codes (I, O, Q, U, Z, 0). Decoded data may not be accurate.; 400 - Invalid Characters Present"`
 - Note: First attempt, like the operation with the `$$$$$`, sending this operation in double quotes resulted in the shell expansion for the `$$` plus a bash history expansion for the `!`. Re-ran it successfully with single quotes.
 
 ## 2026-11-08: DecodeVinValues: No VIN
@@ -192,27 +191,37 @@ Looked up the API on the NHTSA web site and found the correct format:
     - ErrorCode: `"6"`
     - ErrorText: `"6 - Incomplete VIN"`
 
-## 2026-11-06: CORS verified
+## 2026-11-10: GetMakesForVehicleType: partial match across types
 
-- Ran a verification from a Swagger UI scratch page running on localhost (`http://localhost:8080`) and used DevTools > Console:
+- GET /GetMakesForVehicleType/passenger?format=json
+- Fixture: fixtures/getmakesforvehicletype-multiple-types.json
+- Response: `200 application/json`
+- Count: `306`
+- SearchCriteria: `"Vehicle Type: passenger"`
+- Results:
+  - 195 Passenger Car (`VehicleTypeId` 2)
+  - 111 Multipurpose Passenger Vehicle (MPV) (`VehicleTypeId` 7)
+- 59 makes appear twice, once per type. For example, ASTON MARTIN (`MakeId 440`) appears with `VehicleTypeId` 2 and again with 7.
+- The 195 matches the `car` count, so the two requests agree.
 
-  ```js
-  fetch("https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/car?format=json").then(r => r.json()).then(d => console.log(d.Count, d.Message))
-  ```
+## 2026-11-10: GetMakesForVehicleType: truck
 
-- Output with the count and message: `195 'Response returned successfully'`
-- Result: Browser cross-origin GET succeeded without a CORS error.
-- Action: Need to re-run when published on GitHub Pages in S6.
+- GET /GetMakesForVehicleType/truck?format=json
+- Fixture: fixtures/getmakesforvehicletype-truck.json
+- Count: `208`, all `VehicleTypeName` "Truck" (`VehicleTypeId` 3)
 
-## 2026-11-06: CORS
+## 2026-11-10: GetMakesForVehicleType: moto
 
-- GET /vehicles/GetMakesForVehicleType/car?format=json with Origin: `https://southpaw199.github.io`
-- Response header: access-control-allow-origin: *
-- Result: browser calls allowed; Swagger UI Try it out should work on GitHub Pages. Confirm in browser during S5.
+- GET /GetMakesForVehicleType/moto?format=json
+- Fixture: fixtures/getmakesforvehicletype-moto.json
+- Count: `1701`, all `"Motorcycle"` (`VehicleTypeId` 1)
+- Shows that a fragment of a word matches.
 
-## 2026-11-06: DecodeVinValues, partial VIN
+## 2026-11-10: DecodeVinValues: three characters (manufacturer code)
 
-- GET /vehicles/DecodeVinValues/5UXWX7C5*BA?format=json&modelyear=2011
-- Fixture: fixtures/decodevinvalues-partial-vin.json
-- Make BMW, Model X3, ModelYear "2011" (string), ErrorCode "6", ErrorText "6 - Incomplete VIN"
-- Note: nonzero ErrorCode returned alongside a usable decode; numeric values come back as strings.
+- GET /DecodeVinValues/123?format=json
+- Fixture: fixtures/decodevinvalues-partial-vin-123.json
+- Response: 200 application/json
+- Make: `"SHERMAN + REILLY"`, Manufacturer: `"SHERMAN + REILLY, INC."`, ManufacturerId: `"19306"`
+- ErrorCode: `"6,8,11"`, the same as `12345`
+- What it shows: the first three characters alone produce the Make, so they're being read as the manufacturer code (WMI). That explains the `12345` result in your Invalid VIN entry.
