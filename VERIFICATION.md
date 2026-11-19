@@ -28,13 +28,13 @@
 
 - Output with the count and message: `195 'Response returned successfully'`
 - Result: Browser cross-origin GET succeeded without a CORS error.
-- Action: Need to re-run when published on GitHub Pages in S6.
+- Action: Need to re-run when published on GitHub Pages.
 
 ## 2026-11-06: CORS
 
 - GET /vehicles/GetMakesForVehicleType/car?format=json with Origin: `https://southpaw199.github.io`
 - Response header: access-control-allow-origin: *
-- Result: browser calls allowed; Swagger UI Try it out should work on GitHub Pages. Confirm in browser during S5.
+- Result: browser calls allowed; Swagger UI Try it out should work on GitHub Pages. Confirm in browser.
 
 ## 2026-11-06: DecodeVinValues, partial VIN
 
@@ -42,9 +42,9 @@
 - Fixture: fixtures/decodevinvalues-partial-vin.json
 - Result:
   - Make: `BMW`
-  - Model `X3`
-  - ModelYear: `"2011"` (string), 
-  - ErrorCode `"6"`
+  - Model: `X3`
+  - ModelYear: `"2011"` (string)
+  - ErrorCode: `"6"`
   - ErrorText: `"6 - Incomplete VIN"`
 - Note: nonzero ErrorCode returned alongside a usable decode; numeric values come back as strings.
 
@@ -208,12 +208,14 @@ Looked up the API on the NHTSA web site and found the correct format:
 
 - GET /GetMakesForVehicleType/truck?format=json
 - Fixture: fixtures/getmakesforvehicletype-truck.json
+- Response: `200 application/json`
 - Count: `208`, all `VehicleTypeName` "Truck" (`VehicleTypeId` 3)
 
 ## 2026-11-10: GetMakesForVehicleType: moto
 
 - GET /GetMakesForVehicleType/moto?format=json
 - Fixture: fixtures/getmakesforvehicletype-moto.json
+- Response: `200 application/json`
 - Count: `1701`, all `"Motorcycle"` (`VehicleTypeId` 1)
 - Shows that a fragment of a word matches.
 
@@ -221,7 +223,78 @@ Looked up the API on the NHTSA web site and found the correct format:
 
 - GET /DecodeVinValues/123?format=json
 - Fixture: fixtures/decodevinvalues-partial-vin-123.json
-- Response: 200 application/json
-- Make: `"SHERMAN + REILLY"`, Manufacturer: `"SHERMAN + REILLY, INC."`, ManufacturerId: `"19306"`
-- ErrorCode: `"6,8,11"`, the same as `12345`
-- What it shows: the first three characters alone produce the Make, so they're being read as the manufacturer code (WMI). That explains the `12345` result in your Invalid VIN entry.
+- Response: `200 application/json`
+- Results:
+  - Make: `"SHERMAN + REILLY"`
+  - Manufacturer: `"SHERMAN + REILLY, INC."`
+  - ManufacturerId: `"19306"`
+  - ErrorCode: `"6,8,11"`, the same as `12345`
+- What it shows: the first three characters alone produce the Make, so they're being read as the manufacturer code (WMI). That explains the `12345` result in the Invalid VIN entry.
+
+## 2026-11-10: Swagger UI Try it out (local)
+
+- Served `docs/` with `npx http-server docs -p 8080` (version 14.1.1).
+- Ran three operations, all returning `200`:
+  - DecodeVinValues: `1HGCM82633A004352`, json returned `HONDA` `Accord`
+  - GetMakesForVehicleType: `car`, json returned Count `195`
+  - DecodeVINValuesBatch: the `twoVins` example returned Count `2`, `HONDA` and `BMW`
+- This supports README Method step 7.
+
+## 2026-11-18: GetMakesForVehicleType: CSV format
+
+- GET /GetMakesForVehicleType/car?format=csv
+- Fixture: fixtures/getmakesforvehicletype-car.csv
+- Response: `200 application/octet-stream`
+- Result:
+  - Columns for `makeid`,`makename`,`vehicletypeid`,`vehicletypename`
+  - `195` rows
+- Note: Column names are lowercase (`makeid`, not `MakeId` as in JSON), and the content type is `application/octet-stream`. The spec doesn't describe CSV.
+
+## 2026-11-18: DecodeVinValues: Accept: application/xml
+
+- GET /DecodeVinValues/ with header `Accept: application/xml`
+- Fixture: fixtures/decodevinvalues-missing-vin-accept-xml.xml
+- Response: `404 application/xml; charset=utf-8`
+- Error Message: `No HTTP resource was found that matches the request URI 'https://backend-vpic-api.nhtsa.dot.gov/api/vehicles/DecodeVinValues/'.`
+- Note: Without the header, the 404 is JSON (see the No VIN entry).
+
+## 2026-11-18: DecodeVINValuesBatch: No format
+
+- POST /DecodeVINValuesBatch
+- Form body: `data=1HGCM82633A004352,2003;5UXWX7C5*BA,2011` (no `format` field)
+- Fixture: fixtures/decodevinvaluesbatch-no-format.xml
+- Response: `200 application/xml`
+- Count: `2`
+- Results:
+  - First VIN: Make `HONDA`, ErrorCode `0`
+  - Second VIN: Make `BMW`, ErrorCode `6`
+- Without `format`, the batch operation returns XML, the same as DecodeVinValues (see the 2026-11-08 No Format entry). This supports `default: xml` for the batch `format` field in the spec.
+
+## 2026-11-18: DecodeVINValuesBatch: trailing slash
+
+- POST /DecodeVINValuesBatch/ and POST /DecodeVINValuesBatch
+- Form body: `format=json&data=1HGCM82633A004352,2003`
+- Fixture: none (status code only, `-o /dev/null`)
+- Response: `200` for both
+- Note: NHTSA's API page writes the path with a trailing slash. The API accepts both forms. The spec leaves the slash off because Redocly's `no-path-trailing-slash` rule reports it as an error.
+
+## 2026-11-18: DecodeWMI: 123
+
+- GET /DecodeWMI/123?format=json
+- Fixture: fixtures/decodewmi-123.json
+- Response: `200 application/json`
+- Count: `1`
+- SearchCriteria: `"WMI:123"`
+- Result:
+  - Make: `"SHERMAN + REILLY"`
+  - ManufacturerName: `"SHERMAN + REILLY, INC."`
+  - VehicleType: `"Trailer"`
+- Note: This confirms the WMI explanation in the 2026-11-10 DecodeVinValues 123 entry.
+
+## From NHTSA's Documentation: Untested
+
+The following are claims from NHTSA's documentation that I did not test:
+
+- The 9th digit is not necessary (partial VINs)
+- Batch: maximum 50 VINs
+- Batch: modelYear is optional

@@ -185,7 +185,7 @@ paths:
         - VIN decoding
       summary: Decode a batch of VINs
       description: |
-       Use to get vehicle information for a batch of up to 50 full or partial VIN values and an optional model year. For a partial VIN, use `*` to indicate an unavailable character. The ninth digit is optional.
+       Use to get vehicle information for a batch of up to 50 full or partial VIN values and an optional model year. For a partial VIN, use `*` to indicate an unavailable character. The ninth digit is optional. The API also accepts the path with a trailing slash (`/DecodeVINValuesBatch/`), as written on NHTSA's API page.
       operationId: decodeVinBatch
       requestBody:
         required: true

@@ -63,3 +63,26 @@ curl -s 'https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/moto?for
 curl -s "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/123?format=json" \
   -o fixtures/decodevinvalues-partial-vin-123.json -w "%{http_code} %{content_type}\n"
 200 application/json
+
+curl -s 'https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/car?format=csv' \
+  -o fixtures/getmakesforvehicletype-car.csv -w "%{http_code} %{content_type}\n"
+200 application/octet-stream
+
+curl -s -H 'Accept: application/xml' 'https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/' \
+  -o fixtures/decodevinvalues-missing-vin-accept-xml.xml -w "%{http_code} %{content_type}\n"
+404 application/xml; charset=utf-8
+
+curl -s -X POST 'https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVINValuesBatch' \
+  --data 'data=1HGCM82633A004352,2003;5UXWX7C5*BA,2011' \
+  -o fixtures/decodevinvaluesbatch-no-format.xml -w "%{http_code} %{content_type}\n"
+200 application/xml
+
+curl -s -o /dev/null -w "%{http_code}\n" -X POST 'https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVINValuesBatch/' --data 'format=json&data=1HGCM82633A004352,2003'
+200
+
+curl -s -o /dev/null -w "%{http_code}\n" -X POST 'https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVINValuesBatch' --data 'format=json&data=1HGCM82633A004352,2003'
+200
+
+curl -s 'https://vpic.nhtsa.dot.gov/api/vehicles/DecodeWMI/123?format=json' \
+  -o fixtures/decodewmi-123.json -w "%{http_code} %{content_type}\n"
+200 application/json
