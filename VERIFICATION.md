@@ -28,13 +28,14 @@
 
 - Output with the count and message: `195 'Response returned successfully'`
 - Result: Browser cross-origin GET succeeded without a CORS error.
-- Action: Need to re-run when published on GitHub Pages.
+- Action: Re-run on GitHub Pages on 2026-11-18. See the Swagger UI Try it out (GitHub Pages) entry.
 
 ## 2026-11-06: CORS
 
 - GET /vehicles/GetMakesForVehicleType/car?format=json with Origin: `https://southpaw199.github.io`
 - Response header: access-control-allow-origin: *
-- Result: browser calls allowed; Swagger UI Try it out should work on GitHub Pages. Confirm in browser.
+- Result: browser calls allowed.
+- Confirmed on 2026-11-18. See the Swagger UI Try it out (GitHub Pages) entry.
 
 ## 2026-11-06: DecodeVinValues, partial VIN
 
@@ -290,6 +291,16 @@ Looked up the API on the NHTSA web site and found the correct format:
   - ManufacturerName: `"SHERMAN + REILLY, INC."`
   - VehicleType: `"Trailer"`
 - Note: This confirms the WMI explanation in the 2026-11-10 DecodeVinValues 123 entry.
+
+## 2026-11-18: Swagger UI Try it out (GitHub Pages)
+
+- URL: `https://southpaw199.github.io/vpic-openapi/`
+- Ran three operations, all returning `200`:
+  - DecodeVinValues: `1HGCM82633A004352`, json returned `HONDA` `Accord`
+  - GetMakesForVehicleType: `truck`, json returned Count `208` (matches 2026-11-10: GetMakesForVehicleType: truck)
+  - DecodeVINValuesBatch: the `twoVins` example returned Count `2`, `HONDA` and `BMW`
+- Browser: DuckDuckGo 7.245.0 on iPhone 14, iOS 27.2.1
+- CORS header not inspected; the cross-origin calls succeeded
 
 ## From NHTSA's Documentation: Untested
 
